@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nivea Flip Card Game</title>
+    <link href="frontpage.css" rel="stylesheet">
+
+
+    <style>
+
+        .victory-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .victory-modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .victory-modal {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+            color: white;
+        }
+
+        .victory-modal-overlay.show .victory-modal {
+            transform: scale(1);
+        }
+
+        .victory-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .victory-modal h2 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #fbbf24;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .victory-modal p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .victory-stats {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .victory-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .victory-stat:last-child {
+            border-bottom: none;
+        }
+
+        .victory-stat-label {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .victory-stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .modal-btn-primary {
+            background: #fbbf24;
+            color: #1e3a8a;
+        }
+
+        .modal-btn-primary:hover {
+            background: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(251, 191, 36, 0.4);
+        }
+
+        .modal-btn-secondary {
+            background: white;
+            color: #1e3a8a;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 600px) {
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Page Overlay -->
+    <div id="intro-page" class="intro-overlay">
+        <div class="intro-container">
+            <img src="assets/nivealogo.png" alt="Nivea Logo"/>
+            <h1>FLIP THE CARDS</h1>
+            <p>Match all the identical cards as you can</p>
+            <button id="play-button"><span>PLAY NOW</span></button>
+        </div>
+    </div>
+
+    <!-- Game Page -->
+    <div id="game-page" class="game-container">
+        <!-- Header Section -->
+        <header class="game-header">
+            <div class="input-container">
+                <input type="text" 
+                       placeholder="Player Name" 
+                       class="player-input"
+                       aria-label="Enter your player name">
+                <div class="input-logo">
+                    <img src="assets/nivealogo.png" alt="Nivea Logo">
+                </div>
+            </div>
+            
+            <div class="game-title-section">
+                <h1 class="game-title">FLIP THE CARDS</h1>
+                <p class="game-instruction">Match all identical cards as fast as you can</p>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main class="game-main">
+            <!-- Game Stats -->
+            <div class="game-stats">
+                <div class="stat-box">
+                    <span class="stat-label">Time</span>
+                    <span class="stat-value" id="timer">00:00</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Moves</span>
+                    <span class="stat-value" id="moves">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Matches</span>
+                    <span class="stat-value" id="matches">0/8</span>
+                </div>
+            </div>
+
+            <!-- Game Grid -->
+            <div class="game-grid" id="game-grid">
+                <!-- 4x4 grid will be generated by JavaScript -->
+                <!-- Each card will have this structure:
+                <div class="memory-card" data-card="1">
+                    <div class="card-front">
+                        <img src="assets/niveafront.png" alt="Card Front">
+                    </div>
+                    <div class="card-back">
+                        <img src="assets/nivea1.png" alt="Card Back">
+                    </div>
+                </div>
+                -->
+            </div>
+
+            <!-- Game Controls -->
+            <div class="game-controls">
+                <button id="restart-btn" class="control-btn">Restart Game</button>
+                <button id="hint-btn" class="control-btn">Get Hint</button>
+                <button id="home-btn" class="control-btn">Back to Home</button>
+            </div>
+        </main>
+    </div>
+
+
+  
+    </div>
+    <div id="victoryModalOverlay" class="victory-modal-overlay">
+        <div class="victory-modal">
+            <div class="victory-icon">🎉</div>
+            <h2>Congratulations!</h2>
+            <p>You've matched all the cards!</p>
+            
+            <div class="victory-stats">
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Time</span>
+                    <span class="victory-stat-value" id="modalFinalTime">00:00</span>
+                </div>
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Total Moves</span>
+                    <span class="victory-stat-value" id="modalMoves">0</span>
+                </div>
+                <div class="victory-stat">
+                    <span class="victory-stat-label">Pairs Matched</span>
+                    <span class="victory-stat-value" id="modalPairs">0/8</span>
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" onclick="handlePlayAgain()">
+                    Play Again
+                </button>
+                <button class="modal-btn modal-btn-secondary" onclick="window.open('https://www.nivea.com', '_blank')">
+                    Visit Nivea
+                </button>
+            </div>
+            <audio id="correctSound" src="assets/game-bonus-02-294436 (1).mp3"></audio>
+            <audio id="wrongSound" src="assets/error-011-352286 (1).mp3"></audio>
+            <audio id="winnerSound" src="assets/winner-game-sound-404167.mp3"></audio>
+</div>
+    <script src="game.js"></script>
+</body>
+</html>
